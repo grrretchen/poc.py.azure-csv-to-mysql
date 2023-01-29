@@ -1,11 +1,21 @@
+"""
+Default Azure Function Boilerplate
+"""
 import datetime
 import logging
-from main import Main
 
 import azure.functions as func
+from .main import Main
 
 
+# =============================================================================
 def main(mytimer: func.TimerRequest) -> None:
+    """
+    Azure Function Main Method
+
+    Args:
+        mytimer (func.TimerRequest): _description_
+    """
     utc_timestamp = datetime.datetime.utcnow().replace(
         tzinfo=datetime.timezone.utc).isoformat()
 
@@ -13,6 +23,6 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     MyMain = Main()
-    MyMain.hello()
+    MyMain.hello('World')
     
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
