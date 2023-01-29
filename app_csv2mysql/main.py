@@ -85,9 +85,9 @@ class Main():
         Returns:
             engine: An SQLAlchemy Engine object
         """
-        
-        _creds = json.loads(os.environ['AZURE_MYSQL_CREDENTIALS'])
-        
+
+        _creds = json.loads(os.environ['AZURE_DATABASE_CREDENTIALS'])
+
         sql_url = sa.engine.url.URL(
             drivername="mysql+pymysql",
             username=_creds['username'],
