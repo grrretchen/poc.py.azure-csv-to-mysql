@@ -24,5 +24,5 @@ def main(mytimer: func.TimerRequest) -> None:
 
     MyMain = Main()
     MyMain.hello('World')
-    
+
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
