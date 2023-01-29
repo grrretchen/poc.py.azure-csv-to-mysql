@@ -11,29 +11,30 @@ on:
   workflow_dispatch:
 
 env:
+  AZURE_FUNCTIONAPP_NAME: 'poc-azure-csv-to-mysql-gh-pk'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.9' # set this to the python version to use (supports 3.6, 3.7, 3.8)
-  AZURE_FUNCTIONAPP_NAME: 'poc-azure-csv-to-mysql-gh-pk'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Python version
-        uses: actions/setup-python@v1
+      - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Create and start virtual environment
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m venv build_venv
+          source build_venv/bin/activate
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install --target="${workingDirectory}/.python_packages/lib/site-packages" -r requirements.txt
+        workingDirectory: ${workingDirectory}
         
       # Optional: Add step to run tests here
 
@@ -43,7 +44,7 @@ jobs:
           name: python-app
           path: |
             . 
-            !venv/
+            !build_venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -64,8 +65,8 @@ jobs:
         id: deploy-to-function
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          slot-name: ''
+          slot-name: '.'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-          scm-do-build-during-deployment: false
+          scm-do-build-during-deployment: true
           enable-oryx-build: false
