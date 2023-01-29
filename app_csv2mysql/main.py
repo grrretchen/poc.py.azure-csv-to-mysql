@@ -35,7 +35,31 @@ class Main():
         csv = self.fetch_csv()
         dataframe = self.parse_csv_to_pandas(StringIO(csv))
         db_engine = self.make_db_engine(database='demo')
-        dataframe.to_sql(name='products',con=db_engine,if_exists='replace',index=False)
+        self.push_csv_to_mysql(
+            connection=db_engine,
+            tablename="products",
+            dataframe=dataframe
+        )
+        logging.info("Exiting.")
+
+    # -------------------------------------------------------------------------
+    def push_csv_to_mysql(self,connection,tablename,dataframe):
+        """
+        Method: Created table in MySQL using a Pandas dataframe.
+
+        Args:
+            connection (sqlalchemy engine): Initialized SQLAlchemy connection
+            tablename (string): String of destination tablename
+            dataframe (pandas dataframe): Pandas dataframe containing CSV data
+        """
+        logging.info("Creating table in MySQL")
+
+        dataframe.to_sql(
+            name=tablename,
+            con=connection,
+            if_exists='replace',
+            index=False
+            )
 
     # -------------------------------------------------------------------------
     def hello(self, name):
@@ -57,6 +81,7 @@ class Main():
         Returns:
             string: Raw CSV response, or FALSE
         """
+        logging.info("Retrieving CSV file")
         url = "https://raw.githubusercontent.com/shopifypartners/product-csvs/master/home-and-garden.csv"
         resp = fetch(url)
         if not resp:
@@ -71,6 +96,8 @@ class Main():
         Args:
             csv (_type_): _description_
         """
+        logging.info("Parsing CSV file")
+
         df = pd.read_csv(csv)
         return df
 
@@ -85,11 +112,12 @@ class Main():
         Returns:
             engine: An SQLAlchemy Engine object
         """
+        logging.info("Creating database connection")
 
         _creds = json.loads(os.environ['AZURE_DATABASE_CREDENTIALS'])
 
         path = os.path.dirname(os.path.abspath(__file__))
-        
+
         sql_url = sa.engine.url.URL(
             drivername="mysql+pymysql",
             username=_creds['username'],
