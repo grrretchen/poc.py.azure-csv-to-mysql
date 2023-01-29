@@ -88,6 +88,8 @@ class Main():
 
         _creds = json.loads(os.environ['AZURE_DATABASE_CREDENTIALS'])
 
+        path = os.path.dirname(os.path.abspath(__file__))
+        
         sql_url = sa.engine.url.URL(
             drivername="mysql+pymysql",
             username=_creds['username'],
@@ -95,7 +97,7 @@ class Main():
             host=_creds['hostname'],
             database=database,
             port=3306,
-            query={"ssl_ca" : "./ssl-certs/DigiCertGlobalRootCA.crt.pem"}
+            query={"ssl_ca" : f"{path}/ssl-certs/DigiCertGlobalRootCA.crt.pem"}
         )
         engine = sa.create_engine(sql_url)
         return engine
