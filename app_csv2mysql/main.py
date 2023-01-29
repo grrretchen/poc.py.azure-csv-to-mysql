@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import sqlalchemy as sa
 
+from io import StringIO
 
 # =============================================================================
 class Main():
@@ -20,6 +21,9 @@ class Main():
     def main(self):
         csv = self.getCSV()
         print(csv)
+
+        df = self.parseCsvToPandas(StringIO(csv))
+        print(df)
 
     # -------------------------------------------------------------------------
     def hello(self, name):
@@ -47,9 +51,21 @@ class Main():
             return False
         return resp
 
+    # -------------------------------------------------------------------------
+    def parseCsvToPandas(self,csv):
+        """
+        Method: Basic wrapper for Pandas
+
+        Args:
+            csv (_type_): _description_
+        """
+        df = pd.read_csv(csv)
+        
+        return df
+        
 
 # -----------------------------------------------------------------------------
-def fetch(url,headers={}):
+def fetch(url, headers=None):
     """
     Method: Basic wrapper for Requests. Provides boilerplate for error processing.
 
@@ -60,11 +76,12 @@ def fetch(url,headers={}):
     Returns:
         string: content of URL, or FALSE.
     """
-    logging.info('Retrieving data from URL %s'%url)
-    resp = requests.get(url,headers=headers)
-    if not resp.status_code==200:
-        return False
-    return resp.text
+    headers = {} if not headers else headers
+    
+    logging.info("Retrieving data from URL %s", url)    
+    resp = requests.get(url, headers=headers, timeout=60)
+    
+    return resp.text if resp.status_code == 200 else False
     
 # =============================================================================
 if __name__ == "__main__":
