@@ -118,7 +118,8 @@ class Main():
 
         path = os.path.dirname(os.path.abspath(__file__))
 
-        sql_url = sa.engine.url.URL(
+        # MYSQL
+        sql_url = sa.engine.URL.create(
             drivername="mysql+pymysql",
             username=_creds['username'],
             password=_creds['password'],
@@ -127,7 +128,24 @@ class Main():
             port=3306,
             query={"ssl_ca" : f"{path}/ssl-certs/DigiCertGlobalRootCA.crt.pem"}
         )
+
+        # #AZ SQL
+        sql_url = sa.engine.URL.create(
+            drivername="mssql+pyodbc",
+            username=_creds['username'],
+            password=_creds['password'],
+            host=_creds['hostname'],
+            port=1433,
+            database="demo",
+            query={
+            "driver": "ODBC Driver 18 for SQL Server",
+            "TrustServerCertificate": "yes",
+            "authentication": "ActiveDirectoryIntegrated",
+            },
+        )
+
         engine = sa.create_engine(sql_url)
+
         return engine
 
 
