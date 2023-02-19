@@ -6,9 +6,15 @@ param stage string = 'd'
 param environment string = ''
 param location string = 'eastus2'
 param name string = 'app'
-
 param storageAccountType string = 'Standard_LRS'
 
+// db connection strings -----
+param db_username string = ''
+param db_hostname string = ''
+@secure()
+param db_password string = ''
+
+// db connection strings -----
 var _label = replace('${namespace}-${stage}-${environment}-${location}','--','-')
 var _tags = {}
 var _connectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${az.environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
@@ -83,6 +89,10 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         {
           name: 'AzureWebJobsStorage'
           value: _connectionString
+        }
+        {
+          name: 'AZURE_DATABASE_CREDENTIALS'
+          value: '{ "username" : "${db_username}", "password" : "${db_password}", "hostname": "${db_hostname}" }'
         }
       ]
       cors: {
