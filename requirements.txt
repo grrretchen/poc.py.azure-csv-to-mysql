@@ -6,5 +6,7 @@
 azure-functions
 pandas
 pymysql
-sqlalchemy[asyncio]
+pyodbc
+# pin SA to <2.0.0 due to syntax change in pandas (https://github.com/pandas-dev/pandas/issues/40686)
+sqlalchemy[asyncio]==1.4.46
 requests
