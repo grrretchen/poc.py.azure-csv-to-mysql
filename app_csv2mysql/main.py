@@ -6,12 +6,15 @@ Module docstring
 import json
 import logging
 import os
+import urllib
 from io import StringIO
 
 # third-party libraries
 import pandas as pd
 import requests
 import sqlalchemy as sa
+
+# local imports
 
 
 # =============================================================================
@@ -118,33 +121,34 @@ class Main():
 
         path = os.path.dirname(os.path.abspath(__file__))
 
-        # MYSQL
-        sql_url = sa.engine.URL.create(
-            drivername="mysql+pymysql",
-            username=_creds['username'],
-            password=_creds['password'],
-            host=_creds['hostname'],
-            database=database,
-            port=3306,
-            query={"ssl_ca" : f"{path}/ssl-certs/DigiCertGlobalRootCA.crt.pem"}
-        )
+        sql = "azure"
 
-        # #AZ SQL
-        sql_url = sa.engine.URL.create(
-            drivername="mssql+pyodbc",
-            username=_creds['username'],
-            password=_creds['password'],
-            host=_creds['hostname'],
-            port=1433,
-            database="demo",
-            query={
-            "driver": "ODBC Driver 18 for SQL Server",
-            "TrustServerCertificate": "yes",
-            "authentication": "ActiveDirectoryIntegrated",
-            },
-        )
+        if sql=="mysql":
+          # MYSQL
+          sql_url = sa.engine.URL.create(
+              drivername="mysql+pymysql",
+              username=_creds['username'],
+              password=_creds['password'],
+              host=_creds['hostname'],
+              database=database,
+              port=3306,
+              query={"ssl_ca" : f"{path}/ssl-certs/DigiCertGlobalRootCA.crt.pem"}
+          ) 
 
-        engine = sa.create_engine(sql_url)
+        elif sql=="azure":
+          params = urllib.parse.quote_plus(
+            'Driver=%s;' % '{ODBC Driver 18 for SQL Server}' +
+            'Server=tcp:%s,1433;' % _creds['hostname'] +
+            'Database=%s;' % database +
+            'Uid=%s;' % _creds['username'] +
+            'Pwd=%s;' % _creds['password'] +
+            'Encrypt=yes;' +
+            'TrustServerCertificate=no;' +
+            'Connection Timeout=%s;' % 30
+          )
+          sql_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
+
+        engine = sa.create_engine(sql_url, echo=True)
 
         return engine
 
