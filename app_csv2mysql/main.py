@@ -55,12 +55,27 @@ class Main():
             tablename (string): String of destination tablename
             dataframe (pandas dataframe): Pandas dataframe containing CSV data
         """
+        sa_inspector = sa.inspect(connection)
+
+        sql_key_field = 'Handle'
+        sql_key_list = []
+
+        if sa_inspector.has_table(tablename):
+            _keys = pd.read_sql_table(
+                table_name = tablename,
+                con = connection,
+                columns = [sql_key_field]
+            )
+            sql_key_list = pd.unique(_keys[sql_key_field].tolist())
+
+        diff = dataframe[~dataframe[sql_key_field].isin(sql_key_list)]
+
         logging.info("Creating table in MySQL")
 
-        dataframe.to_sql(
+        diff.to_sql(
             name=tablename,
             con=connection,
-            if_exists='replace',
+            if_exists='append',
             index=False
             )
 
