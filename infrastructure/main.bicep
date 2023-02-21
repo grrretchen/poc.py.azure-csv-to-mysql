@@ -65,3 +65,23 @@ module db './azsql_server.bicep' = {
   }
 }
 
+// ============================================================================
+resource rg_core 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: 'rg_${_label}-scraper-core'
+  location: location
+  tags: _tags
+}
+
+// ----------------------------------------------------------------------------
+module db './keyvault.bicep' = {
+  name: 'scraper_kv'
+  scope: resourceGroup(rg_core.name)
+  params: {
+    // namespace: namespace
+    // stage: stage
+    // environment: environment
+    location: location
+    serverName: 'kv_scraper${uniqueString(rg_core.id)}'
+  }
+}
+
