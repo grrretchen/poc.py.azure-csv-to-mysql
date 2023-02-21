@@ -1,14 +1,16 @@
 targetScope = 'resourceGroup'
 
+// PARENT --------------------
+param namespace string
+param stage string
+param environment string
+param location string = resourceGroup().location
+
 // ---------------------------
-param namespace string = 'bh'
-param stage string = 'd'
-param environment string = ''
-param location string = 'eastus2'
 param name string = 'app'
 param storageAccountType string = 'Standard_LRS'
 
-// db connection strings -----
+// DB CONNECTION STRINGS -----
 param db_username string = ''
 param db_hostname string = ''
 @secure()
