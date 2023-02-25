@@ -1,16 +1,17 @@
 targetScope = 'resourceGroup'
 
-// PARENT --------------------
-param namespace string
-param stage string
-param environment string
-param location string = resourceGroup().location
-
 // ---------------------------
+param namespace string = 'bh'
+param stage string = 'd'
+param environment string = ''
+param location string = 'eastus2'
 param name string = 'app'
 param storageAccountType string = 'Standard_LRS'
+param keyVaultName string = ''
+param keyVaultId string = ''
+param keyVaultDatabaseKey string = ''
 
-// DB CONNECTION STRINGS -----
+// db connection strings -----
 param db_username string = ''
 param db_hostname string = ''
 @secure()
@@ -61,10 +62,10 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
 
 
 // ----------------------------------------------------------------------------  
-resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
+resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   name: functionAppName
   location: location
-  kind: 'functionapp'
+  kind: 'functionapp,linux'
   identity: {
     type: 'SystemAssigned'
   }
@@ -93,6 +94,18 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
           value: _connectionString
         }
         {
+          name: 'KEYVAULT_ID'
+          value: keyVaultId
+        }
+        {
+          name: 'KEVAULT_NAME'
+          value: keyVaultName
+        }
+        {
+          name: 'KEYVAULT_KEY_DATABASE_CREDENTIALS'
+          value: keyVaultDatabaseKey
+        }
+        {
           name: 'AZURE_DATABASE_CREDENTIALS'
           value: '{ "username" : "${db_username}", "password" : "${db_password}", "hostname": "${db_hostname}" }'
         }
@@ -112,3 +125,6 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   }
 }
 
+// ============================================================================
+output app object = functionApp
+output identity string = functionApp.identity.principalId
