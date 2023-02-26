@@ -154,7 +154,7 @@ class Main():
 
         elif sql=="azure":
           params = urllib.parse.quote_plus(
-            'Driver=%s;' % '{ODBC Driver 18 for SQL Server}' +
+            'Driver=%s;' % '{ODBC Driver 17 for SQL Server}' +
             'Server=tcp:%s,1433;' % _creds['hostname'] +
             'Database=%s;' % database +
             'Uid=%s;' % _creds['username'] +
