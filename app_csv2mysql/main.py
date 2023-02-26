@@ -6,6 +6,7 @@ Module docstring
 import json
 import logging
 import os
+import pyodbc
 import urllib
 from io import StringIO
 
