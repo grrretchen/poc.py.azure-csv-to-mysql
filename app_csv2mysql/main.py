@@ -136,7 +136,7 @@ class Main():
 
         path = os.path.dirname(os.path.abspath(__file__))
 
-        sql = "mysql"
+        sql = "azure"
         sql_url = None
 
         if sql=="mysql":
