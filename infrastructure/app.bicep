@@ -1,15 +1,36 @@
+// ---------------------------
 targetScope = 'resourceGroup'
 
-// ---------------------------
-param namespace string = 'bh'
-param stage string = 'd'
-param environment string = ''
-param location string = 'eastus2'
-param name string = 'app'
+// General tags ---------------------------------------------------------------
+@description('Short form of the company ID or project ID')
+param namespace string = 'demo'     // company ID
+@description('Short form of the development stage, eg (d)ev, (t)est, (p)rod')
+param stage string = 'd'            // (d)ev, (t)est, (p)roduction
+@description('Short form of the deployment region, eg usea2 for eastus2')
+param environment string = ''       // shortname for region
+@description('Name of the service being provided, eg scraper')
+param app string = ''               // application name
+@description('Actual deployment location, eg eastus2')
+param location string = resourceGroup().location   // actual azure cloud region
+param tags object = {}
+param label string = ''
+
+
+// var _label = replace('${namespace}-${stage}-${environment}-${app}','--','-')
+
+
 param storageAccountType string = 'Standard_LRS'
+
+// keyvault setup
 param keyVaultName string = ''
 param keyVaultId string = ''
 param keyVaultDatabaseKey string = ''
+
+// pre-defined names
+param appInsightsName string = ''
+param storageAccountName string = ''
+param hostingPlanName string = ''
+param functionAppName string = ''
 
 // db connection strings -----
 param db_username string = ''
@@ -17,39 +38,46 @@ param db_hostname string = ''
 @secure()
 param db_password string = ''
 
-// db connection strings -----
-var _label = replace('${namespace}-${stage}-${environment}-${location}','--','-')
-var _tags = {}
-var _connectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${az.environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
-var functionAppName = '${_label}-${name}-${uniqueString(resourceGroup().id)}'
-var storageAccountName = '${uniqueString(resourceGroup().id)}azfunctions'
-var appName = '${name}-${uniqueString(resourceGroup().id)}'
+// renaming -----
+// var longName = '${label}-${uniqueString(resourceGroup().id)}'
+var shortName = replace('${take(namespace,3)}-${take(stage,3)}-${app}','--','-')
+var _appInsightsName = !empty(appInsightsName) ? appInsightsName : 'appi-${label}'
+var _functionAppName = !empty(functionAppName) ? functionAppName : take('func-${shortName}-${uniqueString(resourceGroup().id)}',60)
+var _hostingPlanName = !empty(hostingPlanName) ? hostingPlanName : take('asp-${shortName}-${uniqueString(resourceGroup().id)}',40)
+var _storageAccountName = !empty(storageAccountName) ? storageAccountName : take('st${replace(shortName,'-','')}${uniqueString(resourceGroup().id)}',24)
+
+var _connectionString = 'DefaultEndpointsProtocol=https;AccountName=${_storageAccountName};EndpointSuffix=${az.environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
 
 // ============================================================================
 // ----------------------------------------------------------------------------
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appi_${appName}'
+  // applicationInsights	-- scope: resource group -- 1-260 -- Can't use: %&\?/ or control characters -- Can't end with space or period.
+  name: _appInsightsName
   location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
     Request_Source: 'rest'
   }
+  tags: tags
 }
 
 // ----------------------------------------------------------------------------
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
-  name: storageAccountName
-location: location
+  // storageAccounts -- scope: global -- 3-24 -- Lowercase letters and numbers.
+  name: _storageAccountName
+  location: location
   sku:{
     name: storageAccountType
   }
   kind:'Storage'
+  tags: tags
 }
 
 // ----------------------------------------------------------------------------
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: 'asp_${appName}'
+  // serverfarms -- resource group -- 1-40 -- Alphanumeric, hyphens and Unicode characters that can be mapped to Punycode
+  name: _hostingPlanName
   location: location
   sku:{
     name: 'Y1'
@@ -58,12 +86,14 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   properties: {
     reserved: true
   }
+  tags: tags
 }
 
 
 // ----------------------------------------------------------------------------  
 resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: functionAppName
+  // sites -- global --	2-60 -- Alphanumeric, hyphens and Unicode characters that can be mapped to Punycode -- Can't start or end with hyphen.
+  name: _functionAppName
   location: location
   kind: 'functionapp,linux'
   identity: {
@@ -123,6 +153,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     virtualNetworkSubnetId: null
     httpsOnly: true
   }
+  tags: tags
 }
 
 // ============================================================================

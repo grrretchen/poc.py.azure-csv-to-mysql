@@ -9,16 +9,22 @@
       "value": "d"
     },
     "environment": {
-      "value": ""
+      "value": "usea2"
     },
     "location": {
       "value": "eastus2"
     },
+    "app": {
+      "value": "scraper"
+    },
     "db_password": {
-      "value": "my:d3m0@p@ssw0rd"
+      "value": ""
     },
     "db_username": {
-      "value": "myadmin"
+      "value": ""
+    },
+    "firstrun": {
+      "value": false
     }
   }
 }
