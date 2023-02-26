@@ -128,7 +128,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
           value: keyVaultId
         }
         {
-          name: 'KEVAULT_NAME'
+          name: 'KEYVAULT_NAME'
           value: keyVaultName
         }
         {
