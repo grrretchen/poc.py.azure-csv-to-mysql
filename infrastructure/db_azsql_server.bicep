@@ -30,7 +30,7 @@ var _databaseName = !empty(databaseName) ? databaseName : 'sqldb-${app}'
 
 // ============================================================================
 // ----------------------------------------------------------------------------
-resource server 'Microsoft.Sql/servers@2022-05-01-preview' = {
+resource sql_server 'Microsoft.Sql/servers@2022-05-01-preview' = {
   // servers -- global -- 1-63 -- Lowercase letters, numbers, and hyphens. -- Can't start or end with hyphen.
   name: _serverName
   location: location
@@ -43,9 +43,19 @@ resource server 'Microsoft.Sql/servers@2022-05-01-preview' = {
 }
 
 // ----------------------------------------------------------------------------
-resource database 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
+resource sqlfw_allowAzureIps 'Microsoft.Sql/servers/firewallRules@2020-11-01-preview' = {
+  name: 'AllowAllWindowsAzureIps'
+  parent: sql_server
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
+// ----------------------------------------------------------------------------
+resource sql_database 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
   // servers / databases -- server -- 1-128 -- Can't use: <>*%&:\/? or control characters -- Can't end with period or space.
-  parent: server
+  parent: sql_server
   name: _databaseName
   location: location
   sku: {
@@ -63,5 +73,5 @@ resource database 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
 
 // ============================================================================
 #disable-next-line outputs-should-not-contain-secrets
-output connectionString string = 'Data Source=${server.properties.fullyQualifiedDomainName};Initial Catalog=${database.name};User ID=${username};Password=${password};'
-output fqdn string = server.properties.fullyQualifiedDomainName
+output connectionString string = 'Data Source=${sql_server.properties.fullyQualifiedDomainName};Initial Catalog=${sql_database.name};User ID=${username};Password=${password};'
+output fqdn string = sql_server.properties.fullyQualifiedDomainName
